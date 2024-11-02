@@ -1,5 +1,6 @@
 ﻿using bakkari.Models;
 using bakkari.Repositories;
+using Microsoft.JSInterop.Infrastructure;
 
 namespace bakkari.Services
 {
@@ -31,19 +32,58 @@ namespace bakkari.Services
             return UserToDTO(user);
         }
 
-        public Task<IEnumerable<UserDTO>> GetUsersAsync()
+        public async Task<IEnumerable<UserDTO>> GetUsersAsync()
         {
-            throw new NotImplementedException();
+            IEnumerable<User> users = await _repository.GetUsersAsync();
+            List<UserDTO> result = new List<UserDTO>();
+            foreach (User user in users)
+            {
+                result.Add(UserToDTO(user));
+            }
+            return result;
         }
 
-        public Task<UserDTO> NewUserAsync(User user)
+        public async Task<UserDTO> NewUserAsync(User user)
         {
-            throw new NotImplementedException();
+            User? dbUser = await _repository.GetUserAsync(user.UserName);
+            if (dbUser != null)
+            {
+                return null;
+            }
+
+            User? newUser = await _repository.NewUserAsync(user);
+            if (newUser != null)
+            {
+                return UserToDTO(newUser);
+            }
+            return null;
         }
 
-        public Task<bool> UpdateUserAsync(User user)
+        public async Task<bool> UpdateUserAsync(User user)
         {
-            throw new NotImplementedException();
+            User? dbUser = await _repository.GetUserAsync(user.UserName);
+            if (dbUser != null)
+            {
+                dbUser.FirstName = user.FirstName;
+                dbUser.LastName = user.LastName;
+                dbUser.Email = user.Email;
+                dbUser.Password = user.Password;
+
+                return await _repository.UpdateUserAsync(dbUser);
+            }
+            return false;
+        }
+
+        private UserDTO UserToDTO(User user)
+        {
+            UserDTO dto = new UserDTO();
+            dto.UserName = user.UserName;
+            dto.Email = user.Email;
+            dto.FirstName = user.FirstName;
+            dto.LastName = user.LastName;
+            dto.JoinDate = user.JoinDate;
+            dto.LastLogin = user.LastLogin;
+            return dto;
         }
     }
 }

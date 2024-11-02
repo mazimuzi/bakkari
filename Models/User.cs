@@ -7,7 +7,7 @@ namespace bakkari.Models
         public long Id { get; set; }
         [MinLength(3)]
         [MaxLength(30)]
-        public string Username { get; set; }
+        public string UserName { get; set; }
         [MaxLength(100)]
         public string Password { get; set; }
         [MaxLength(100)]
@@ -26,7 +26,7 @@ namespace bakkari.Models
         [MinLength(3)]
         [MaxLength(30)]
 
-        public string Username { get; set; }
+        public string UserName { get; set; }
         [MaxLength(100)]
         [EmailAddress]
 
