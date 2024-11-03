@@ -10,6 +10,8 @@ namespace bakkari.Models
         public string UserName { get; set; }
         [MaxLength(100)]
         public string Password { get; set; }
+
+        public string Salt { get; set; }
         [MaxLength(100)]
         [EmailAddress]
         public string? Email { get; set; }

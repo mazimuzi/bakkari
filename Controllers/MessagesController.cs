@@ -36,25 +36,5 @@ namespace bakkari.Controllers
             return message;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> DeleteUser(string username)
-        {
-            UserDTO? newUser = await _userService.NewUserAsync(user);
-            if (newUser == null)
-            {
-                return Problem("Username not available",statusCode:400);
-            }
-            return CreatedAtAction("GetUser", new { username = user.UserName }, user);
-        }
-
-        [HttpDelete("{username}")]
-        public async Task<IActionResult> DeleteUser(string username)
-        {
-            if(await _userService.DeleteUserAsync(username))
-            {
-                return NoContent();
-            }
-            return NotFound();
-        }
     }
 }
