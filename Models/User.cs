@@ -11,7 +11,7 @@ namespace bakkari.Models
         [MaxLength(100)]
         public string Password { get; set; }
 
-        public string Salt { get; set; }
+        public byte[]? Salt { get; set; }
         [MaxLength(100)]
         [EmailAddress]
         public string? Email { get; set; }

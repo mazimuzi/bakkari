@@ -1,5 +1,5 @@
-﻿using bakkari.Models;
-using bakkari.Repositories;
+﻿using bakkari.Repositories;
+using bakkari.Models;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
 
@@ -7,16 +7,19 @@ namespace bakkari.Middleware
 {
     public interface IUserAuthenticationService
     {
-        Task<User?> Authenticate(string username, string password);
+        Task<User> Authenticate(string username, string password);
+        Task<bool> isMyMessage(string username, long messageId);
+        public User CreateUserCredentials(User user);
     }
     public class UserAuthenticationService : IUserAuthenticationService
     {
         private readonly IUserRepository _userRepository;
         private readonly IMessageRepository _messageRepository;
 
-        public UserAuthenticationService(IUserRepository userRepository)
+        public UserAuthenticationService(IUserRepository userRepository, IMessageRepository messageRepository)
         {
             _userRepository = userRepository;
+            _messageRepository = messageRepository;
         }
         public async Task<User?> Authenticate(string username, string password)
         {
@@ -27,13 +30,19 @@ namespace bakkari.Middleware
             {
                 return null;
             }
+            string hashedPassword = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+        password: password,
+        salt: user.Salt,
+        prf: KeyDerivationPrf.HMACSHA256,
+        iterationCount: 10000,
+        numBytesRequested: 258 / 8));
+
             if (password != user.Password)
             {
                 return null;
             }
             return user;
         }
-
         public User CreateUserCredentials(User user)
         {
             byte[] salt = new byte[128 / 8];
@@ -57,6 +66,7 @@ namespace bakkari.Middleware
             return user;
         }
 
+
         public async Task<bool> isMyMessage(string username, long messageId)
         {
             User? user = await _userRepository.GetUserAsync(username);
@@ -69,7 +79,11 @@ namespace bakkari.Middleware
             {
                 return false;
             }
-            return message.UserId == user.Id;
+            if (message.Sender == user)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

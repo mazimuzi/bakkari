@@ -1,4 +1,5 @@
-﻿using bakkari.Models;
+﻿using bakkari.Middleware;
+using bakkari.Models;
 using bakkari.Repositories;
 using Microsoft.JSInterop.Infrastructure;
 
@@ -7,14 +8,15 @@ namespace bakkari.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _repository;
+        private readonly IUserAuthenticationService _userAuthenticationService;
 
-        public UserService(IUserRepository repository)
+        public UserService(IUserRepository repository, IUserAuthenticationService userAuthenticationService)
         {
             _repository = repository;
         }
-        public async Task<bool> DeleteUserAsync(long id)
+        public async Task<bool> DeleteUserAsync(string username)
         {
-            User? user = await _repository.GetUserAsync(id);
+            User? user = await _repository.GetUserAsync(username);
             if (user != null)
             {
                 return await _repository.DeleteUserAsync(user);
@@ -51,6 +53,8 @@ namespace bakkari.Services
                 return null;
             }
 
+            user.JoinDate = DateTime.Now;
+            user.LastLogin = DateTime.Now;
             User? newUser = await _repository.NewUserAsync(user);
             if (newUser != null)
             {
