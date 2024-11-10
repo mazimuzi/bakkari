@@ -1,5 +1,7 @@
 ﻿using bakkari.Models;
 using bakkari.Repositories;
+using bakkari.Services;
+using System.Drawing.Text;
 
 namespace bakkari.Services
 {
@@ -7,7 +9,6 @@ namespace bakkari.Services
     {
         private readonly IMessageRepository _repository;
         private readonly IUserRepository _userRepository;
-
         public MessageService(IMessageRepository repository, IUserRepository userRepository)
         {
             _repository = repository;
@@ -24,44 +25,38 @@ namespace bakkari.Services
             }
             return false;
         }
+
         public async Task<MessageDTO?> GetMessageAsync(long id)
         {
             return MessageToDTO(await _repository.GetMessageAsync(id));
         }
-
-        public async Task<IEnumerable<MessageDTO>> GetMessagesAsync()
+        private async Task<Message> DTOToMessageAsync(MessageDTO dTO)
         {
-            IEnumerable<Message> messages = await _repository.GetMessagesAsync();
-            List<MessageDTO> result = new List<MessageDTO>();
-            foreach (Message message in messages)
+            Message newMessage = new Message();
+            newMessage.Id = dTO.Id;
+            newMessage.Title = dTO.Title;
+            newMessage.Body = dTO.Body;
+
+
+
+            User? sender = await _userRepository.GetUserAsync(dTO.Sender);
+            if (sender != null)
             {
-                result.Add(MessageToDTO(message));
+                newMessage.Sender = sender;
             }
-            return result;
-        }
-
-        public async Task<MessageDTO> NewMessageAsync(MessageDTO message)
-        {
-            return MessageToDTO(await _repository.NewMessageAsync(await DTOToMessageAsync(message)));
-
-        }
-
-        public async Task<bool> UpdateMessageAsync(MessageDTO message)
-        {
-            Message? dbMessage = await _repository.GetMessageAsync(message.Id);
-            if (dbMessage != null)
+            if (dTO.Recipient != null)
             {
-                dbMessage.Title = message.Title;
-                dbMessage.Body = message.Body;
-                return await _repository.UpdateMessageAsync(dbMessage);
+                User? recipient = await _userRepository.GetUserAsync(dTO.Recipient);
+                if (recipient != null)
+                {
+                    newMessage.Recipient = recipient;
+                }
             }
-            return false;
+            return newMessage;
         }
-
         private MessageDTO MessageToDTO(Message message)
         {
             MessageDTO dTO = new MessageDTO();
-
             dTO.Id = message.Id;
             dTO.Title = message.Title;
             dTO.Body = message.Body;
@@ -72,41 +67,25 @@ namespace bakkari.Services
             }
             if (message.PrevMessage != null)
             {
-                dTO.PrevMessageId = message.PrevMessage.Id;
+                dTO.PrevMessage = message.PrevMessage.Id;
             }
-
             return dTO;
         }
 
-        private async Task<Message> DTOToMessageAsync(MessageDTO dTO)
+
+        public Task<IEnumerable<MessageDTO>> GetMessagesAsync()
         {
-            Message newMessage = new Message();
-            newMessage.Id = dTO.Id;
-            newMessage.Title = dTO.Title;
-            newMessage.Body = dTO.Body;
-
-            User? sender = await _userRepository.GetUserAsync(dTO.Sender);
-            if (sender != null)
-            {
-                newMessage.Sender = sender;
-            }
-
-            if (dTO.Recipient != null)
-            {
-                User? recipient = await _userRepository.GetUserAsync(dTO.Recipient);
-                if (recipient != null)
-                {
-                    newMessage.Recipient = recipient;
-                }
-            }
-
-            if (dTO.PrevMessageId != null)
-            {
-                Message prevMessage = await _repository.GetMessageAsync((long)dTO.PrevMessageId);
-                newMessage.PrevMessage = prevMessage;
-            }
-            return newMessage;
+            throw new NotImplementedException();
         }
 
+        public Task<MessageDTO> NewMessageAsync(MessageDTO message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateMessageAsync(MessageDTO message)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

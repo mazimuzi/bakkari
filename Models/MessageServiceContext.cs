@@ -5,8 +5,7 @@ namespace bakkari.Models
 {
     public class MessageServiceContext : DbContext
     {
-        public MessageServiceContext(DbContextOptions<MessageServiceContext> options)
-        : base(options)
+        public MessageServiceContext(DbContextOptions<MessageServiceContext> options) : base(options)
         {
         }
 

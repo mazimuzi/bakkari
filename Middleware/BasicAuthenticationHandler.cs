@@ -1,8 +1,8 @@
-﻿using bakkari.Models;
+﻿using bakkari.Middleware;
+using bakkari.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
-using NuGet.Versioning;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
@@ -33,12 +33,10 @@ namespace bakkari.Middleware
             {
                 return AuthenticateResult.NoResult();
             }
-
             if (!Request.Headers.ContainsKey("Authorization"))
             {
-                return AuthenticateResult.Fail("Authorization header not found");
+                return AuthenticateResult.Fail("Authorization header missing");
             }
-
             try
             {
                 var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
@@ -47,24 +45,27 @@ namespace bakkari.Middleware
                 userName = credentials[0];
                 password = credentials[1];
 
+                
                 user = await _userAuthenticationService.Authenticate(userName, password);
-                if (user == null)
+                if (user != null)
                 {
-                    return AuthenticateResult.Fail("Invalid username or password");
+                    return AuthenticateResult.Fail("Unauthorized");
                 }
+
             }
             catch (Exception ex)
             {
-                return AuthenticateResult.Fail("Invalid Authorization header");
+                return AuthenticateResult.Fail("Unauthorized");
             }
-            var claims  = new[]
-            { 
-                new Claim(ClaimTypes.Name, userName),
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Name,userName)
             };
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
             return AuthenticateResult.Success(ticket);
+
         }
     }
 }
